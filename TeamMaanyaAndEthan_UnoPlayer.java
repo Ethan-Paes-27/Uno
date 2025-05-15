@@ -9,6 +9,19 @@ public class TeamMaanyaAndEthan_UnoPlayer implements UnoPlayer {
     private GameState game;
 
     /**
+     *
+     * @param i, the index (0 = red, yellow, green, 3 = blue)
+     * @return the corresponding color
+     */
+    private Color colorAtIndex(int i) {
+        if (i == 0) {return Color.RED;}
+        if (i == 1) {return Color.YELLOW;}
+        if (i == 2) {return Color.GREEN;}
+        if (i == 3) {return Color.BLUE;}
+        return Color.NONE;
+    }
+
+    /**
      * play - This method is called when it's your turn and you need to
      * choose what card to play.
      *
@@ -44,8 +57,81 @@ public class TeamMaanyaAndEthan_UnoPlayer implements UnoPlayer {
 
         game = state;
 
-        // THIS IS WHERE YOUR AMAZING CODE GOES
-        return -1;
+        List<Integer> possible;
+
+        if (upCard.getRank().equals(Rank.WILD) || upCard.getRank().equals(Rank.WILD_D4)) {
+            possible = possiblePlays(hand, calledColor);
+        }
+        else {
+            possible = possiblePlays(hand, upCard);
+        }
+
+        if (possible.size() == 1) {
+            return possible.get(0);
+        }
+
+        if (possible.size() == -1) {
+            System.out.println("emtpy");
+            return -1;
+        }
+
+        int rand = (int)(Math.random() * possible.size());
+
+        System.out.println(possible.get(rand));
+
+        return possible.get(rand);
+    }
+
+    private List<Integer> possiblePlays(List<Card> hand, Color calledColor) {
+        List<Integer> possible = new ArrayList<>();
+
+        for (int i = 0; i < hand.size(); i++) {
+            Card c = hand.get(i);
+
+            if (c.getRank().equals(Rank.WILD) || c.getRank().equals(Rank.WILD_D4)) {
+                possible.add(i);
+                continue;
+            }
+
+            if (c.getColor().equals(calledColor)) {
+                possible.add(i);
+            }
+        }
+
+        return possible;
+    }
+
+    private List<Integer> possiblePlays(List<Card> hand, Card upCard) {
+
+        List<Integer> possible = new ArrayList<>();
+
+        for (int i = 0; i < hand.size(); i++) {
+            Card c = hand.get(i);
+
+            if (c.getRank().equals(Rank.WILD) || c.getRank().equals(Rank.WILD_D4)) {
+                possible.add(i);
+                continue;
+            }
+
+            if (!c.getRank().equals(Rank.NUMBER)) {
+                if (c.getColor().equals(upCard.getColor())) {
+                    System.out.println("color match");
+                    possible.add(i);
+                }
+                continue;
+            }
+
+            if (c.getColor().equals(upCard.getColor()) || c.getNumber() == upCard.getNumber()) {
+                System.out.println("num match");
+                possible.add(i);
+            }
+        }
+
+        for (Integer c : possible) {
+            System.out.println(hand.get(c));
+        }
+
+        return possible;
     }
 
     /**
@@ -105,33 +191,15 @@ public class TeamMaanyaAndEthan_UnoPlayer implements UnoPlayer {
 
     /**
      *
-     * @param i, the index (0 = red, yellow, green, 3 = blue)
-     * @return the corresponding color
-     */
-    private Color colorAtIndex(int i) {
-        if (i == 0) {
-            return Color.RED;
-        }
-        if (i == 1) {
-            return Color.YELLOW;
-        }
-        if (i == 2) {
-            return Color.GREEN;
-        }
-        if (i == 3) {
-            return Color.BLUE;
-        }
-        return Color.NONE;
-    }
-
-    /**
-     *
      * @return the color amounts for every color, 0 is red, then yellow, green, and 3 is blue
      */
     private int[] countColors(List<Card> cards) {
         int[] colors = new int[4];
 
         for (Card c : cards) {
+            if (!c.getRank().equals(Rank.NUMBER)) {
+                continue;
+            }
             if (c.getColor().equals(Color.RED)) {
                 colors[0]++;
             }
@@ -150,4 +218,5 @@ public class TeamMaanyaAndEthan_UnoPlayer implements UnoPlayer {
     }
 
 }
+
 
