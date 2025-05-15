@@ -5,7 +5,7 @@ import java.util.*;
 
 public class TestCaseProcessor {
 
-    public static String classname = "TeamDoge";
+    public static String classname = "TeamMaanyaAndEthan";
     public String filename = "testCases.txt";
     private UnoPlayer thePlayer;
 
