@@ -66,18 +66,11 @@ public class TeamMaanyaAndEthan_UnoPlayer implements UnoPlayer {
             possible = possiblePlays(hand, upCard);
         }
 
-        if (possible.size() == 1) {
-            return possible.get(0);
-        }
-
-        if (possible.size() == -1) {
-            System.out.println("emtpy");
+        if (possible.isEmpty()) {
             return -1;
         }
 
         int rand = (int)(Math.random() * possible.size());
-
-        System.out.println(possible.get(rand));
 
         return possible.get(rand);
     }
@@ -88,7 +81,7 @@ public class TeamMaanyaAndEthan_UnoPlayer implements UnoPlayer {
         for (int i = 0; i < hand.size(); i++) {
             Card c = hand.get(i);
 
-            if (c.getRank().equals(Rank.WILD) || c.getRank().equals(Rank.WILD_D4)) {
+            if (c.getColor().equals(Color.NONE)) {
                 possible.add(i);
                 continue;
             }
@@ -108,27 +101,21 @@ public class TeamMaanyaAndEthan_UnoPlayer implements UnoPlayer {
         for (int i = 0; i < hand.size(); i++) {
             Card c = hand.get(i);
 
-            if (c.getRank().equals(Rank.WILD) || c.getRank().equals(Rank.WILD_D4)) {
+            if (c.getColor().equals(Color.NONE)) {
                 possible.add(i);
                 continue;
             }
 
             if (!c.getRank().equals(Rank.NUMBER)) {
-                if (c.getColor().equals(upCard.getColor())) {
-                    System.out.println("color match");
+                if (c.getColor().equals(upCard.getColor()) || c.getRank().equals(upCard.getRank())) {
                     possible.add(i);
                 }
                 continue;
             }
 
             if (c.getColor().equals(upCard.getColor()) || c.getNumber() == upCard.getNumber()) {
-                System.out.println("num match");
                 possible.add(i);
             }
-        }
-
-        for (Integer c : possible) {
-            System.out.println(hand.get(c));
         }
 
         return possible;
@@ -143,61 +130,16 @@ public class TeamMaanyaAndEthan_UnoPlayer implements UnoPlayer {
      * return the value Color.NONE under any circumstances.
      */
     public Color callColor(List<Card> hand) {
-        int[] ours = countColors(hand);
+        int[] oursAsColors = countColorsWild(hand);
 
-        return bestCallColor(ours);
+        return bestCallColorWild(oursAsColors);
     }
 
-    /**
-     *
-     * @param ourHand, our
-     * @return
-     */
-    private Color bestCallColor(int[] ourHand) {
-        ArrayList<Integer> possibleMaxes = possibleMaxes(ourHand);
-
-        if (possibleMaxes.size() == 1) {
-            return colorAtIndex(possibleMaxes.get(0));
-        }
-
-        int[] gameUsed = countColors(game.getPlayedCards());
-
-        //WIP FINISH THISSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
-        return Color.NONE;
-    }
-
-    /**
-     *
-     * @param ourHand, our current hand as an array which the values being color occurrences
-     * @return possible maxes (more than one if there is a tie) of what indexes are the max
-     */
-    private ArrayList<Integer> possibleMaxes(int[] ourHand) {
-        ArrayList<Integer> possibleMaxes = new ArrayList<>(4);
-        int maxVal = 0;
-
-        for (int i = 0; i < ourHand.length; i++) {
-            if (ourHand[i] == maxVal) {
-                possibleMaxes.add(i);
-            }
-            if (ourHand[i] > maxVal) {
-                possibleMaxes.clear();
-                possibleMaxes.add(i);
-                maxVal = ourHand[i];
-            }
-        }
-
-        return possibleMaxes;
-    }
-
-    /**
-     *
-     * @return the color amounts for every color, 0 is red, then yellow, green, and 3 is blue
-     */
-    private int[] countColors(List<Card> cards) {
+    private int[] countColorsWild(List<Card> cards) {
         int[] colors = new int[4];
 
         for (Card c : cards) {
-            if (!c.getRank().equals(Rank.NUMBER)) {
+            if (c.getColor().equals(Color.NONE)) {
                 continue;
             }
             if (c.getColor().equals(Color.RED)) {
@@ -217,6 +159,35 @@ public class TeamMaanyaAndEthan_UnoPlayer implements UnoPlayer {
         return colors;
     }
 
-}
+    private Color bestCallColorWild(int[] ourHand) {
+        ArrayList<Integer> possibleMaxes = possibleMaxes(ourHand);
 
+        if (possibleMaxes.size() == 1) {
+            return colorAtIndex(possibleMaxes.get(0));
+        }
+
+        int rand = (int)(Math.random() * possibleMaxes.size());
+
+        return colorAtIndex(possibleMaxes.get(rand));
+    }
+
+    private ArrayList<Integer> possibleMaxes(int[] ourHandAsColors) {
+        ArrayList<Integer> possible = new ArrayList<>();
+
+        int maxVal = 0;
+
+        for (int i = 0; i < ourHandAsColors.length; i++) {
+            if (ourHandAsColors[i] > maxVal) {
+                maxVal = ourHandAsColors[i];
+                possible.clear();
+                possible.add(i);
+            }
+            if (ourHandAsColors[i] == maxVal) {
+                possible.add(i);
+            }
+        }
+
+        return possible;
+    }
+}
 
