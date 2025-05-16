@@ -1,0 +1,20 @@
+me,TeamMaanyaAndEthan
+me2,TeamMaanyaAndEthan
+
+----------------------------------------
+NOTE the format of the above lines!  Each line consists of a display name, a comma, NO SPACE, then the name
+      of the team WITHOUT the "_UnoPlayer".
+
+      To use this file, run UnoSimulation.  (The first two constants in that file are important.  You can
+      change the number of games played as well as whether to print all details of the hands...)
+
+      You can play 2 or more teams here.  WE will only use four-team matches in the class competition.
+
+      If you do use TeamHuman, note that when you must call the color the input should be "R", "B", "G", or "Y".
+
+      rando1,TeamRandom
+      rando2,TeamRandom
+      human,TeamHuman
+
+      Once you have working code for your class, you might want to use three random teams and your team to see
+      how your code competes against TeamRandom :)
