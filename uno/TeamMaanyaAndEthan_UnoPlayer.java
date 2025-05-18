@@ -21,6 +21,16 @@ public class TeamMaanyaAndEthan_UnoPlayer implements UnoPlayer {
         return Color.NONE;
     }
 
+    private int cardTypeRankingsForBlocking(Rank r) {
+        if (r.equals(Rank.NUMBER)) {return 0;}
+        if (r.equals(Rank.WILD_D4)) {return 1;}
+        if (r.equals(Rank.SKIP)) {return 2;}
+        if (r.equals(Rank.DRAW_TWO)) {return 3;}
+        if (r.equals(Rank.WILD)) {return 4;}
+        if (r.equals(Rank.WILD_D4)) {return 5;}
+        return -1;
+    }
+
     private int cardTypeRankings(Rank r) {
         if (r.equals(Rank.NUMBER)) {return 0;}
         if (r.equals(Rank.REVERSE)) {return 1;}
@@ -83,7 +93,7 @@ public class TeamMaanyaAndEthan_UnoPlayer implements UnoPlayer {
             return possible.get(0);
         }
 
-        if (game.getNumCardsInHandsOfUpcomingPlayers()[0] < 3) {
+        if (game.getNumCardsInHandsOfUpcomingPlayers()[1] < 3) {
             int bestPos = playMessUpNextPerson(possible, hand);
 
             if (bestPos != -1) {
@@ -137,11 +147,7 @@ public class TeamMaanyaAndEthan_UnoPlayer implements UnoPlayer {
         int bestPos = -1;
         int bestType = 0;
 
-        for (int i = 0; i < hand.size(); i++) {
-            if (!possibleCards.contains(i)) {
-                continue;
-            }
-
+        for (int i : possibleCards) {
             Card c = hand.get(i);
 
             if (c.getRank().equals(Rank.NUMBER)) {

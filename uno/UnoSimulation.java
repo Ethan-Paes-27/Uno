@@ -14,7 +14,7 @@ import java.io.FileReader;
 public class UnoSimulation {
 
     //How many games to be played
-    public static final int NUM_GAMES = 10000;
+    public static final int NUM_GAMES = 1000;
     //Whether text appears when running matches (turn OFF when running large a large trial)
     public static boolean PRINT_VERBOSE = false;
     //Whether to print the color of the card as a letter or as a color on the screen
@@ -22,7 +22,7 @@ public class UnoSimulation {
     //The number of cards each player will be dealt at start of game.
     public static final int INIT_HAND_SIZE = 7;
     //Whether to count score or just rounds won
-    public static final boolean USE_SCORE = true;
+    public static final boolean USE_SCORE = false;
     /**
      * <p>
      * The name of a file (relative to working directory) containing
@@ -118,9 +118,9 @@ public class UnoSimulation {
                 toPrint += " ";
             }
             toPrint += playerWins.get(i) + " wins (" + Math.round(playerWins.get(i) * 100. / totalWins) + "%)";
-//            if (USE_SCORE) {
-//                toPrint += "  " + playerScores.get(i) + " points (" + Math.round(playerScores.get(i) * 100. / totalScore) + "%)";
-//            }
+           if (USE_SCORE) {
+               toPrint += "  " + playerScores.get(i) + " points (" + Math.round(playerScores.get(i) * 100. / totalScore) + "%)";
+           }
         }
         System.out.println(toPrint);
     }
