@@ -1,5 +1,5 @@
 me,TeamMaanyaAndEthan
-me2,TeamMaanyaAndEthan
+rando1,TeamRandom
 
 ----------------------------------------
 NOTE the format of the above lines!  Each line consists of a display name, a comma, NO SPACE, then the name

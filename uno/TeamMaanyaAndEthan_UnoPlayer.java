@@ -21,6 +21,16 @@ public class TeamMaanyaAndEthan_UnoPlayer implements UnoPlayer {
         return Color.NONE;
     }
 
+    private int cardTypeRankings(Rank r) {
+        if (r.equals(Rank.NUMBER)) {return 0;}
+        if (r.equals(Rank.REVERSE)) {return 1;}
+        if (r.equals(Rank.SKIP)) {return 2;}
+        if (r.equals(Rank.DRAW_TWO)) {return 3;}
+        if (r.equals(Rank.WILD)) {return 4;}
+        if (r.equals(Rank.WILD_D4)) {return 5;}
+        return -1;
+    }
+
     /**
      * play - This method is called when it's your turn and you need to
      * choose what card to play.
@@ -59,8 +69,8 @@ public class TeamMaanyaAndEthan_UnoPlayer implements UnoPlayer {
 
         List<Integer> possible;
 
-        if (upCard.getRank().equals(Rank.WILD) || upCard.getRank().equals(Rank.WILD_D4)) {
-            possible = possiblePlays(hand, calledColor);
+        if (upCard.getColor().equals(Color.NONE)) {
+            possible = possiblePlays(hand, new Card(calledColor, Rank.WILD, -1));
         }
         else {
             possible = possiblePlays(hand, upCard);
@@ -69,32 +79,34 @@ public class TeamMaanyaAndEthan_UnoPlayer implements UnoPlayer {
         if (possible.isEmpty()) {
             return -1;
         }
+        if (possible.size() == 1) {
+            return possible.get(0);
+        }
+
+        if (game.getNumCardsInHandsOfUpcomingPlayers()[0] < 3) {
+            int bestPos = playMessUpNextPerson(possible, hand);
+
+            if (bestPos != -1) {
+                return bestPos;
+            }
+        }
+
+        // Color currentColor = upCard.getColor().equals(Color.NONE) ? calledColor : upCard.getColor();
+
+        // int tryNumberCard = playNumberCard(possible, hand, currentColor);
+        // if (tryNumberCard != -1) {
+        //     return possible.get(tryNumberCard);
+        // }
 
         int rand = (int)(Math.random() * possible.size());
 
         return possible.get(rand);
     }
 
-    private List<Integer> possiblePlays(List<Card> hand, Color calledColor) {
-        List<Integer> possible = new ArrayList<>();
-
-        for (int i = 0; i < hand.size(); i++) {
-            Card c = hand.get(i);
-
-            if (c.getColor().equals(Color.NONE)) {
-                possible.add(i);
-                continue;
-            }
-
-            if (c.getColor().equals(calledColor)) {
-                possible.add(i);
-            }
-        }
-
-        return possible;
-    }
-
     private List<Integer> possiblePlays(List<Card> hand, Card upCard) {
+        Rank rank = upCard.getRank();
+        Color color = upCard.getColor();
+        int number = upCard.getNumber();
 
         List<Integer> possible = new ArrayList<>();
 
@@ -107,13 +119,13 @@ public class TeamMaanyaAndEthan_UnoPlayer implements UnoPlayer {
             }
 
             if (!c.getRank().equals(Rank.NUMBER)) {
-                if (c.getColor().equals(upCard.getColor()) || c.getRank().equals(upCard.getRank())) {
+                if (c.getColor().equals(color) || c.getRank().equals(rank)) {
                     possible.add(i);
                 }
                 continue;
             }
 
-            if (c.getColor().equals(upCard.getColor()) || c.getNumber() == upCard.getNumber()) {
+            if (c.getColor().equals(color) || c.getNumber() == number) {
                 possible.add(i);
             }
         }
@@ -121,6 +133,56 @@ public class TeamMaanyaAndEthan_UnoPlayer implements UnoPlayer {
         return possible;
     }
 
+    private int playMessUpNextPerson(List<Integer> possibleCards, List<Card> hand) { //eventually make this so that if ranks are the same, then go for color min if applicable
+        int bestPos = -1;
+        int bestType = 0;
+
+        for (int i = 0; i < hand.size(); i++) {
+            if (!possibleCards.contains(i)) {
+                continue;
+            }
+
+            Card c = hand.get(i);
+
+            if (c.getRank().equals(Rank.NUMBER)) {
+                continue;
+            }
+
+            int rank = cardTypeRankings(c.getRank());
+
+            if (rank > bestType) {
+                bestType = rank;
+                bestPos = i;
+            }
+        }
+
+        return bestPos;
+    }
+    
+    // private int playNumberCard(List<Integer> possibleCards, List<Card> hand, Color currentColor) { //eventually make this to look for least repeated in opponent's likely hand
+    //     int bestPos = -1;
+    //     int bestNum = 0;
+
+    //     for (int i = 0; i < possibleCards.size(); i++) {
+    //         if (!possibleCards.contains(i)) {
+    //             continue;
+    //         }
+
+    //         Card c = hand.get(i);
+
+    //         if (!c.getRank().equals(Rank.NUMBER)) {
+    //             continue;
+    //         }
+
+    //         if (c.getNumber() > bestNum) {
+    //             bestNum = c.getNumber();
+    //             bestPos = possibleCards.indexOf(c);
+    //         }
+    //     }
+
+    //     return bestPos;
+    // }
+    
     /**
      * callColor - This method will be called when you have just played a
      * wild card, and is your way of specifying which color you want to
@@ -129,7 +191,7 @@ public class TeamMaanyaAndEthan_UnoPlayer implements UnoPlayer {
      * You must return a valid Color value from this method. You must not
      * return the value Color.NONE under any circumstances.
      */
-    public Color callColor(List<Card> hand) {
+    public Color callColor(List<Card> hand) { //NEED TO OPTIMIZE WILDS
         int[] oursAsColors = countColorsWild(hand);
 
         return bestCallColorWild(oursAsColors);

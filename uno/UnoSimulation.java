@@ -14,9 +14,9 @@ import java.io.FileReader;
 public class UnoSimulation {
 
     //How many games to be played
-    public static final int NUM_GAMES = 100;
+    public static final int NUM_GAMES = 10000;
     //Whether text appears when running matches (turn OFF when running large a large trial)
-    public static boolean PRINT_VERBOSE = true;
+    public static boolean PRINT_VERBOSE = false;
     //Whether to print the color of the card as a letter or as a color on the screen
     public static final boolean PRINT_IN_COLOR = true;
     //The number of cards each player will be dealt at start of game.
