@@ -1,5 +1,7 @@
 me,TeamMaanyaAndEthan
 rando1,TeamRandom
+rando2,TeamRandom
+rando3,TeamRandom
 
 ----------------------------------------
 NOTE the format of the above lines!  Each line consists of a display name, a comma, NO SPACE, then the name
@@ -14,6 +16,7 @@ NOTE the format of the above lines!  Each line consists of a display name, a com
 
       rando1,TeamRandom
       rando2,TeamRandom
+      rando3,TeamRandom
       human,TeamHuman
 
       Once you have working code for your class, you might want to use three random teams and your team to see
