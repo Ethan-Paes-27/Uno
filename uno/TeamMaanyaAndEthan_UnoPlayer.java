@@ -55,6 +55,24 @@ public class TeamMaanyaAndEthan_UnoPlayer implements UnoPlayer {
         return colors;
     }
 
+    private int playBiggestNumCard(List<Integer> possibleCards) {
+        int bigVal = -1;
+        int pos = -1;
+
+        for (int i : possibleCards) {
+            if (!hand.get(i).getRank().equals(Rank.NUMBER)) continue;
+
+            int val = hand.get(i).getNumber();
+
+            if (val > bigVal) {
+                bigVal = val;
+                pos = i;
+            }
+        }
+
+        return pos;
+    }
+
     /**
      * play - This method is called when it's your turn and you need to
      * choose what card to play.
@@ -89,32 +107,58 @@ public class TeamMaanyaAndEthan_UnoPlayer implements UnoPlayer {
     public int play(List<Card> handed, Card upCard, Color calledColor,
                     GameState state) {
 
-        game = state;
-        hand = handed;
+        game = state; // update the game state
+        hand = handed; // update our hand
 
         List<Integer> possible;
+        int[] numCards = game.getNumCardsInHandsOfUpcomingPlayers();
 
-        if (upCard.getColor().equals(Color.NONE)) {
+        if (upCard.getColor().equals(Color.NONE)) { // if it is a wild, we use called color specifically
             possible = possiblePlays(new Card(calledColor, Rank.WILD, -1));
         }
-        else {
+        else { // just use the upcard
             possible = possiblePlays(upCard);
         }
 
-        if (possible.isEmpty()) {
+        if (possible.isEmpty()) { // if there are no possibles, just pass
             return -1;
         }
-        if (possible.size() == 1) {
+        if (possible.size() == 1) { // if its only one move, just play it
             return possible.get(0);
         }
-        if (game.getNumCardsInHandsOfUpcomingPlayers()[1] < 3) {
+
+        if (numCards[1] <= 2) { // if the next person has less than 3 cards, then play a move to mess them up
             return playBlockNextPerson(possible);
         }
 
         int pos = playBiggestNumCard(possible);
-
         if (pos != -1) {
             return pos;
+        }
+
+        if (numCards.length == 4) { // so if there are exactly 4 players, then this applies
+            int numCardsBehindYou = numCards[numCards.length-1]; // num cards of the person who just had their turn
+            int numCardsAcrossFromYou = numCards[2]; // num cards of the person who will have their turn in 2 moves
+
+
+            List<Rank> ranksToAvoid = new ArrayList<>(2);
+
+            if (numCardsBehindYou <= 1) { // if the person behind me has one card, then reverses are bad
+                ranksToAvoid.add(Rank.REVERSE);
+            }
+            if (numCardsAcrossFromYou <= 1) { // if the person across from me has one card, then skips are bad
+                ranksToAvoid.add(Rank.SKIP);
+                ranksToAvoid.add(Rank.WILD_D4);
+                ranksToAvoid.add(Rank.DRAW_TWO);
+            }
+
+            if (!ranksToAvoid.isEmpty()) { // if there are any ranks in the do not play list
+                int playUsingAvoid = doNotPlayCard(possible, ranksToAvoid);
+
+                if (playUsingAvoid != -1) {
+                    return playUsingAvoid;
+                }
+            }
         }
 
         int rand = (int)(Math.random() * possible.size());
@@ -187,7 +231,15 @@ public class TeamMaanyaAndEthan_UnoPlayer implements UnoPlayer {
 
             int rank = cardTypeRankingsForBlocking(c.getRank());
 
-            if (numCardsOtherPlayers[numCardsOtherPlayers.length-1] == 1 && c.getRank().equals(Rank.REVERSE)) continue;
+            if (numCardsOtherPlayers[numCardsOtherPlayers.length-1] == 1 && c.getRank().equals(Rank.REVERSE)) {
+                continue;
+            }
+
+            if (numCardsOtherPlayers.length >= 3) {
+                if (numCardsOtherPlayers[2] <= 2 && c.getRank().equals(Rank.SKIP)) {
+                    continue;
+                }
+            }
 
             if (rank == bestType) {
                 if (bestType >= 4) continue;
@@ -206,22 +258,37 @@ public class TeamMaanyaAndEthan_UnoPlayer implements UnoPlayer {
         return bestPos;
     }
 
-    private int playBiggestNumCard(List<Integer> possibleCards) {
-        int bigVal = -1;
+    private int doNotPlayCard(List<Integer> possible, List<Rank> avoid) {
         int pos = -1;
+        int maxType = 0;
 
-        for (int i : possibleCards) {
-            if (!hand.get(i).getRank().equals(Rank.NUMBER)) continue;
+        for (int i : possible) {
+            Card c = hand.get(i);
 
-            int val = hand.get(i).getNumber();
+            if (avoid.contains(c.getRank())) {
+                continue;
+            }
 
-            if (val > bigVal) {
-                bigVal = val;
+            int type = cardTypeRankingsForBlocking(c.getRank());
+
+            if (type > maxType) {
+                maxType = type;
                 pos = i;
             }
         }
 
+        if (pos == -1) {
+            return playBiggestType(possible);
+        }
+
         return pos;
+    }
+
+    private int playBiggestType(List<Integer> possible) {
+        int maxType = 0;
+        int pos = 0;
+
+        if ()
     }
 
     /**
