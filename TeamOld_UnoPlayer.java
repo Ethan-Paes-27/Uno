@@ -32,14 +32,27 @@ public class TeamOld_UnoPlayer implements UnoPlayer {
         return -1;
     }
 
-    private int cardTypeRankings(Rank r) {
-        if (r.equals(Rank.NUMBER)) {return 0;}
-        if (r.equals(Rank.REVERSE)) {return 1;}
-        if (r.equals(Rank.SKIP)) {return 2;}
-        if (r.equals(Rank.DRAW_TWO)) {return 3;}
-        if (r.equals(Rank.WILD)) {return 4;}
-        if (r.equals(Rank.WILD_D4)) {return 5;}
-        return -1;
+    private int[] countColors(List<Card> cards) {
+        int[] colors = new int[4];
+
+        for (Card c : cards) {
+            if (c.getColor().equals(Color.NONE)) {
+                continue;
+            }
+            if (c.getColor().equals(Color.RED)) {
+                colors[0]++;
+            }
+            if (c.getColor().equals(Color.YELLOW)) {
+                colors[1]++;
+            }
+            if (c.getColor().equals(Color.GREEN)) {
+                colors[2]++;
+            }
+            if (c.getColor().equals(Color.BLUE)) {
+                colors[3]++;
+            }
+        }
+        return colors;
     }
 
     /**
@@ -94,9 +107,8 @@ public class TeamOld_UnoPlayer implements UnoPlayer {
         if (possible.size() == 1) {
             return possible.get(0);
         }
-
         if (game.getNumCardsInHandsOfUpcomingPlayers()[1] < 3) {
-            return playMessUpNextPerson(possible);
+            return playBlockNextPerson(possible);
         }
 
         int pos = playBiggestNumCard(possible);
@@ -140,24 +152,48 @@ public class TeamOld_UnoPlayer implements UnoPlayer {
         return possible;
     }
 
-    private int playMessUpNextPerson(List<Integer> possibleCards) { //eventually make this so that if ranks are the same, then go for color min if applicable
+    private int playBlockNextPerson(List<Integer> possibleCards) { //eventually make this so that if ranks are the same, then go for color min if applicable
         int bestPos = -1;
         int bestType = 0;
+
         int[] numCardsOtherPlayers = game.getNumCardsInHandsOfUpcomingPlayers();
+        List<Card> discarded = game.getPlayedCards();
+
+        Color best;
+
+        if (discarded.size() > 10) {
+            int[] colors = countColors(discarded);
+
+            int max = 0;
+            int pos = 0;
+
+            for (int i = 0; i < 4; i++) {
+                if (colors[i] > max) {
+                    max = colors[i];
+                    pos = i;
+                }
+            }
+
+            best = colorAtIndex(pos);
+        }
+        else {
+            best = Color.NONE;
+        }
 
         for (int i : possibleCards) {
             Card c = hand.get(i);
 
-            if (c.getRank().equals(Rank.NUMBER)) {
-                continue;
-            }
+            if (c.getRank().equals(Rank.NUMBER)) continue;
 
             int rank = cardTypeRankingsForBlocking(c.getRank());
 
-            if (numCardsOtherPlayers[numCardsOtherPlayers.length-1] == 1 && c.getRank().equals(Rank.REVERSE)) {
-                continue;
-            }
+            if (numCardsOtherPlayers[numCardsOtherPlayers.length-1] == 1 && c.getRank().equals(Rank.REVERSE)) continue;
 
+            if (rank == bestType) {
+                if (bestType >= 4) continue;
+
+                bestPos = c.getColor().equals(best) ? i : bestPos;
+            }
 
             if (rank > bestType) {
                 bestType = rank;
@@ -165,9 +201,7 @@ public class TeamOld_UnoPlayer implements UnoPlayer {
             }
         }
 
-        if (bestType == 0) {
-            bestPos = playBiggestNumCard(possibleCards);
-        }
+        if (bestType == 0) bestPos = playBiggestNumCard(possibleCards);
 
         return bestPos;
     }
@@ -177,9 +211,7 @@ public class TeamOld_UnoPlayer implements UnoPlayer {
         int pos = -1;
 
         for (int i : possibleCards) {
-            if (!hand.get(i).getRank().equals(Rank.NUMBER)) {
-                continue;
-            }
+            if (!hand.get(i).getRank().equals(Rank.NUMBER)) continue;
 
             int val = hand.get(i).getNumber();
 
@@ -203,33 +235,9 @@ public class TeamOld_UnoPlayer implements UnoPlayer {
     public Color callColor(List<Card> handed) { //NEED TO OPTIMIZE WILDS
         hand = handed;
 
-        int[] oursAsColors = countColorsWild();
+        int[] oursAsColors = countColors(hand);
 
         return bestCallColorWild(oursAsColors);
-    }
-
-    private int[] countColorsWild() {
-        int[] colors = new int[4];
-
-        for (Card c : hand) {
-            if (c.getColor().equals(Color.NONE)) {
-                continue;
-            }
-            if (c.getColor().equals(Color.RED)) {
-                colors[0]++;
-            }
-            if (c.getColor().equals(Color.YELLOW)) {
-                colors[1]++;
-            }
-            if (c.getColor().equals(Color.GREEN)) {
-                colors[2]++;
-            }
-            if (c.getColor().equals(Color.BLUE)) {
-                colors[3]++;
-            }
-        }
-
-        return colors;
     }
 
     private Color bestCallColorWild(int[] ourHand) {
@@ -255,6 +263,7 @@ public class TeamOld_UnoPlayer implements UnoPlayer {
                 possible.clear();
                 possible.add(i);
             }
+
             if (ourHandAsColors[i] == maxVal) {
                 possible.add(i);
             }
