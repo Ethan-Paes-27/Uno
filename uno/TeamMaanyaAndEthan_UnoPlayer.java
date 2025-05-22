@@ -22,6 +22,11 @@ public class TeamMaanyaAndEthan_UnoPlayer implements UnoPlayer {
         return Color.NONE;
     }
 
+    /**
+     *
+     * @param r, the rank of the card passed
+     * @return what its corresponding power value is
+     */
     private int cardTypeRankingsForBlocking(Rank r) {
         if (r.equals(Rank.WILD_D4)) {return 5;}
         if (r.equals(Rank.WILD)) {return 4;}
@@ -32,18 +37,27 @@ public class TeamMaanyaAndEthan_UnoPlayer implements UnoPlayer {
         return -1;
     }
 
+    /**
+     *
+     * @param c, the card passed
+     * @return what its corresponding point value is
+     */
     private int cardRankingsForValue(Card c) {
         Rank r = c.getRank();
-        int num = c.getNumber();
 
-        if (r.equals(Rank.WILD_D4)) {return 14;}
-        if (r.equals(Rank.WILD)) {return 13;}
-        if (r.equals(Rank.DRAW_TWO)) {return 12;}
-        if (r.equals(Rank.SKIP)) {return 11;}
+        if (r.equals(Rank.WILD_D4)) {return 15;}
+        if (r.equals(Rank.WILD)) {return 15;}
+        if (r.equals(Rank.DRAW_TWO)) {return 10;}
+        if (r.equals(Rank.SKIP)) {return 10;}
         if (r.equals(Rank.REVERSE)) {return 10;}
-        return num;
+        return c.getNumber();
     }
 
+    /**
+     *
+     * @param cards, a list of cards
+     * @return an int[] array where each index (0 to 3) corresponds to a color, as in colorAtIndex
+     */
     private int[] countColors(List<Card> cards) {
         int[] colors = new int[4];
 
@@ -119,11 +133,11 @@ public class TeamMaanyaAndEthan_UnoPlayer implements UnoPlayer {
     public int play(List<Card> handed, Card upCard, Color calledColor,
                     GameState state) {
 
-        game = state; 
-        hand = handed; 
+        game = state; // update the game state
+        hand = handed; // update the handed cards
 
-        List<Integer> possible;
-    
+        List<Integer> possible; // list of possible positions that I can play
+
         if (upCard.getColor().equals(Color.NONE)) {
             possible = possiblePlays(new Card(calledColor, Rank.WILD, -1));
         }
@@ -131,32 +145,40 @@ public class TeamMaanyaAndEthan_UnoPlayer implements UnoPlayer {
             possible = possiblePlays(upCard);
         }
 
-        if (possible.isEmpty()) { 
+        if (possible.isEmpty()) {
             return -1;
         }
         if (possible.size() == 1) {
             return possible.get(0);
         }
 
-        if (anyoneHasLessThan4CardsBesidesMe()) {
-            if (!isThisTheLeast(0)) {
-                if (isThisTheLeast(1)) {
-                    int block = playBlockNextPerson(possible);
-                    if (block != -1) {
-                        return block;
-                    }
-                }
-                
-                int playUsingBiggest = playBiggestCard(possible);
+        hand.clear();
 
-                return playUsingBiggest;
-            }
-        }
+        hand.add(new Card(Color.NONE, Rank.WILD_D4, -1));
 
-        int pos = playBiggestNumCard(possible);
-        if (pos != -1) {
-            return pos;
-        }
+        return 0;
+
+        //return playBiggestCard(possible);
+    }
+
+//        if (anyoneHasLessThan4CardsBesidesMe()) {
+//            if (!isThisTheLeast(0)) {
+//                if (isThisTheLeast(1)) {
+//                    int block = playBlockNextPerson(possible);
+//                    if (block != -1) {
+//                        return block;
+//                    }
+//                }
+//
+//                return playBiggestCard(possible);
+//
+//            }
+//        }
+//
+//        int pos = playBiggestNumCard(possible);
+//        if (pos != -1) {
+//            return pos;
+//        }
 
 //        if (numCards.length == 4) { // so if there are exactly 4 players, then this applies
 //            int numCardsBehindYou = numCards[numCards.length-1]; // num cards of the person who just had their turn
@@ -182,11 +204,11 @@ public class TeamMaanyaAndEthan_UnoPlayer implements UnoPlayer {
 //                }
 //            }
 //        }
-
-        int rand = (int)(Math.random() * possible.size());
-
-        return possible.get(rand);
-    }
+//
+//        int rand = (int)(Math.random() * possible.size());
+//
+//        return possible.get(rand);
+//    }
 
     private List<Integer> possiblePlays(Card upCard) {
         Rank rank = upCard.getRank();
@@ -359,7 +381,7 @@ public class TeamMaanyaAndEthan_UnoPlayer implements UnoPlayer {
      * You must return a valid Color value from this method. You must not
      * return the value Color.NONE under any circumstances.
      */
-    public Color callColor(List<Card> handed) { //NEED TO OPTIMIZE WILDS
+    public Color callColor(List<Card> handed) {
         hand = handed;
 
         int[] oursAsColors = countColors(hand);
@@ -372,6 +394,26 @@ public class TeamMaanyaAndEthan_UnoPlayer implements UnoPlayer {
 
         if (possibleMaxes.size() == 1) {
             return colorAtIndex(possibleMaxes.get(0));
+        }
+
+        List<Card> playedCards = game.getPlayedCards();
+
+        if (playedCards.size() > 1) {
+            int[] gameAsColors = countColors(playedCards);
+
+            List<Integer> possibleDiscardedMaxes = possibleMaxes(gameAsColors);
+
+            int works = -1;
+
+            for (int i : possibleMaxes) {
+                if (possibleDiscardedMaxes.contains(i)) {
+                    works = i;
+                }
+            }
+
+            if (works != -1) {
+                return colorAtIndex(works);
+            }
         }
 
         int rand = (int)(Math.random() * possibleMaxes.size());
