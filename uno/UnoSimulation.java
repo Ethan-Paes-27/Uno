@@ -14,7 +14,7 @@ import java.io.FileReader;
 public class UnoSimulation {
 
     //How many games to be played
-    public static final int NUM_GAMES = 10000;
+    public static final int NUM_GAMES = 10000000;
     //Whether text appears when running matches (turn OFF when running large a large trial)
     public static boolean PRINT_VERBOSE = false;
     //Whether to print the color of the card as a letter or as a color on the screen
@@ -45,6 +45,7 @@ public class UnoSimulation {
     private ArrayList<String> playerClasses = new ArrayList();
     private ArrayList<Integer> playerWins = new ArrayList();
     private ArrayList<Integer> playerScores = new ArrayList();
+    private ArrayList<Integer> finalPlayerScores = new ArrayList<>();
 
     /**
      * Run an Uno simulation of some number of games pitting some set of
@@ -57,7 +58,7 @@ public class UnoSimulation {
     public static void main(String args[]) {
         UnoSimulation sim = new UnoSimulation();
         sim.run();
-        sim.display();
+        //sim.display();
     }
 
     public void run() {
@@ -68,11 +69,16 @@ public class UnoSimulation {
                     Game g = new Game(playerNames, playerClasses);
                     Victory v = g.play();
                     playerScores.set(v.winningPlayer, playerScores.get(v.winningPlayer) + v.score);
-                    if (playerScores.get(v.winningPlayer) >= 500) {
+                    finalPlayerScores.set(v.winningPlayer, finalPlayerScores.get(v.winningPlayer) + v.score);
+                    if (playerScores.get(v.winningPlayer) >= 1) {
                         playerWins.set(v.winningPlayer, playerWins.get(v.winningPlayer) + 1);
+//                        display();
+
                         for (int j = 0; j < playerClasses.size(); j++) {
                             playerScores.set(j, 0);
                         }
+
+
                         break;
                     }
                 }
@@ -92,6 +98,7 @@ public class UnoSimulation {
             playerClasses.add("uno." + line.next() + "_UnoPlayer");
             playerWins.add(0);
             playerScores.add(0);
+            finalPlayerScores.add(0);
             playerLine = br.readLine();
         }
     }
@@ -118,9 +125,12 @@ public class UnoSimulation {
                 toPrint += " ";
             }
             toPrint += playerWins.get(i) + " wins (" + Math.round(playerWins.get(i) * 100. / totalWins) + "%)";
-           if (true) {
-               toPrint += "  " + playerScores.get(i) + " points (" + Math.round(playerScores.get(i) * 100. / totalScore) + "%)";
-           }
+
+            if (USE_SCORE) {
+                toPrint += "  " + finalPlayerScores.get(i) + " points.";
+            }
+
+
         }
         System.out.println(toPrint);
     }
