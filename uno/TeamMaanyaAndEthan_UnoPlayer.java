@@ -32,6 +32,18 @@ public class TeamMaanyaAndEthan_UnoPlayer implements UnoPlayer {
         return -1;
     }
 
+    private int cardRankingsForValue(Card c) {
+        Rank r = c.getRank();
+        int num = c.getNumber();
+
+        if (r.equals(Rank.WILD_D4)) {return 14;}
+        if (r.equals(Rank.WILD)) {return 13;}
+        if (r.equals(Rank.DRAW_TWO)) {return 12;}
+        if (r.equals(Rank.SKIP)) {return 11;}
+        if (r.equals(Rank.REVERSE)) {return 10;}
+        return num;
+    }
+
     private int[] countColors(List<Card> cards) {
         int[] colors = new int[4];
 
@@ -107,31 +119,37 @@ public class TeamMaanyaAndEthan_UnoPlayer implements UnoPlayer {
     public int play(List<Card> handed, Card upCard, Color calledColor,
                     GameState state) {
 
-        game = state; // update the game state
-        hand = handed; // update our hand
+        game = state; 
+        hand = handed; 
 
         List<Integer> possible;
-        int[] numCards = game.getNumCardsInHandsOfUpcomingPlayers();
-
-        if (upCard.getColor().equals(Color.NONE)) { // if it is a wild, we use called color specifically
+    
+        if (upCard.getColor().equals(Color.NONE)) {
             possible = possiblePlays(new Card(calledColor, Rank.WILD, -1));
         }
-        else { // just use the upcard
+        else {
             possible = possiblePlays(upCard);
         }
 
-        if (possible.isEmpty()) { // if there are no possibles, just pass
+        if (possible.isEmpty()) { 
             return -1;
         }
-        if (possible.size() == 1) { // if its only one move, just play it
+        if (possible.size() == 1) {
             return possible.get(0);
         }
 
-        if (numCards[1] <= 2) { // if the next person has less than 3 cards, then play a move to mess them up
-            int block = playBlockNextPerson(possible);
+        if (anyoneHasLessThan4CardsBesidesMe()) {
+            if (!isThisTheLeast(0)) {
+                if (isThisTheLeast(1)) {
+                    int block = playBlockNextPerson(possible);
+                    if (block != -1) {
+                        return block;
+                    }
+                }
+                
+                int playUsingBiggest = playBiggestCard(possible);
 
-            if (block != -1) {
-                return block;
+                return playUsingBiggest;
             }
         }
 
@@ -200,9 +218,36 @@ public class TeamMaanyaAndEthan_UnoPlayer implements UnoPlayer {
         return possible;
     }
 
+    private boolean anyoneHasLessThan4CardsBesidesMe() {
+        int[] numCards = game.getNumCardsInHandsOfUpcomingPlayers();
+
+        for (int i = 1; i < numCards.length; i++) {
+            if (numCards[i] < 4) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean isThisTheLeast(int pos) {
+        int[] numCards = game.getNumCardsInHandsOfUpcomingPlayers();
+
+        int thisNumCards = numCards[pos];
+
+        for (int i = 0; i < numCards.length; i++) {
+            if (i == pos) continue;
+
+            if (numCards[i] < thisNumCards) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
     private int playBlockNextPerson(List<Integer> possibleCards) { //eventually make this so that if ranks are the same, then go for color min if applicable
         int bestPos = -1;
-        int bestType = 0;
+        int bestType = 1;
 
         int[] numCardsOtherPlayers = game.getNumCardsInHandsOfUpcomingPlayers();
         List<Card> discarded = game.getPlayedCards();
@@ -255,6 +300,22 @@ public class TeamMaanyaAndEthan_UnoPlayer implements UnoPlayer {
         }
 
         return bestPos;
+    }
+
+    private int playBiggestCard(List<Integer> possibleCards) {
+        int bigVal = -1;
+        int pos = -1;
+
+        for (int i : possibleCards) {
+            Card c = hand.get(i);
+
+            if (cardRankingsForValue(c) > bigVal) {
+                bigVal = cardRankingsForValue(c);
+                pos = i;
+            }
+        }
+
+        return pos;
     }
 
 //    private int doNotPlayCard(List<Integer> possible, List<Rank> avoid) {

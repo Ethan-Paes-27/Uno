@@ -22,7 +22,7 @@ public class UnoSimulation {
     //The number of cards each player will be dealt at start of game.
     public static final int INIT_HAND_SIZE = 7;
     //Whether to count score or just rounds won
-    public static final boolean USE_SCORE = false;
+    public static final boolean USE_SCORE = true;
     /**
      * <p>
      * The name of a file (relative to working directory) containing
@@ -118,7 +118,7 @@ public class UnoSimulation {
                 toPrint += " ";
             }
             toPrint += playerWins.get(i) + " wins (" + Math.round(playerWins.get(i) * 100. / totalWins) + "%)";
-           if (USE_SCORE) {
+           if (true) {
                toPrint += "  " + playerScores.get(i) + " points (" + Math.round(playerScores.get(i) * 100. / totalScore) + "%)";
            }
         }
