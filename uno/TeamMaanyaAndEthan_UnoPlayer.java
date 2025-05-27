@@ -6,8 +6,8 @@ import java.util.List;
 
 public class TeamMaanyaAndEthan_UnoPlayer implements UnoPlayer {
 
-    private GameState game;
-    List<Card> hand;
+    private GameState game; // the game state
+    List<Card> hand; // our hand
 
     /**
      *
@@ -138,42 +138,41 @@ public class TeamMaanyaAndEthan_UnoPlayer implements UnoPlayer {
 
         List<Integer> possible; // list of possible positions that I can play
 
-        if (upCard.getColor().equals(Color.NONE)) {
+        if (upCard.getColor().equals(Color.NONE)) { // if there is no color, then use the called color
             possible = possiblePlays(new Card(calledColor, Rank.WILD, -1));
         }
-        else {
+        else { // just use the upCard
             possible = possiblePlays(upCard);
         }
 
-        if (possible.isEmpty()) {
+        if (possible.isEmpty()) { // if there are no possible cards, just return -1
             return -1;
         }
-        if (possible.size() == 1) {
+        if (possible.size() == 1) { // if there is only one card, play that
             return possible.get(0);
         }
 
-        hand.clear();
-
-        hand.add(new Card(Color.NONE, Rank.WILD_D4, -1));
-
-        return 0;
-
-        //return playBiggestCard(possible);
-    }
-
-//        if (anyoneHasLessThan4CardsBesidesMe()) {
+//        if (anyoneHasLessThanNumCardsBesidesMe(4)) {
 //            if (!isThisTheLeast(0)) {
 //                if (isThisTheLeast(1)) {
 //                    int block = playBlockNextPerson(possible);
 //                    if (block != -1) {
 //                        return block;
 //                    }
+//
+//                    int big = playBiggestNumCard(possible);
+//
+//                    if (big != -1) {
+//                        return big;
+//                    }
 //                }
-//
-//                return playBiggestCard(possible);
-//
 //            }
 //        }
+
+        return playBiggestCard(possible); // play the biggest value card
+    }
+
+//
 //
 //        int pos = playBiggestNumCard(possible);
 //        if (pos != -1) {
@@ -240,11 +239,11 @@ public class TeamMaanyaAndEthan_UnoPlayer implements UnoPlayer {
         return possible;
     }
 
-    private boolean anyoneHasLessThan4CardsBesidesMe() {
+    private boolean anyoneHasLessThanNumCardsBesidesMe(int num) {
         int[] numCards = game.getNumCardsInHandsOfUpcomingPlayers();
 
         for (int i = 1; i < numCards.length; i++) {
-            if (numCards[i] < 4) {
+            if (numCards[i] < num) {
                 return true;
             }
         }
@@ -267,7 +266,7 @@ public class TeamMaanyaAndEthan_UnoPlayer implements UnoPlayer {
         return true;
     }
 
-    private int playBlockNextPerson(List<Integer> possibleCards) { //eventually make this so that if ranks are the same, then go for color min if applicable
+    private int playBlockNextPerson(List<Integer> possibleCards) {
         int bestPos = -1;
         int bestType = 1;
 
