@@ -22,16 +22,6 @@ public class TeamHigh_UnoPlayer implements UnoPlayer {
         return Color.NONE;
     }
 
-    private int cardTypeRankingsForBlocking(Rank r) {
-        if (r.equals(Rank.WILD_D4)) {return 5;}
-        if (r.equals(Rank.WILD)) {return 4;}
-        if (r.equals(Rank.DRAW_TWO)) {return 3;}
-        if (r.equals(Rank.SKIP)) {return 2;}
-        if (r.equals(Rank.REVERSE)) {return 1;}
-        if (r.equals(Rank.NUMBER)) {return 0;}
-        return -1;
-    }
-
     private int cardRankingsForValue(Card c) {
         Rank r = c.getRank();
         int num = c.getNumber();
@@ -67,55 +57,6 @@ public class TeamHigh_UnoPlayer implements UnoPlayer {
         return colors;
     }
 
-    private int playBiggestNumCard(List<Integer> possibleCards) {
-        int bigVal = -1;
-        int pos = -1;
-
-        for (int i : possibleCards) {
-            if (!hand.get(i).getRank().equals(Rank.NUMBER)) continue;
-
-            int val = hand.get(i).getNumber();
-
-            if (val > bigVal) {
-                bigVal = val;
-                pos = i;
-            }
-        }
-
-        return pos;
-    }
-
-    /**
-     * play - This method is called when it's your turn and you need to
-     * choose what card to play.
-     *
-     * The hand parameter tells you what's in your hand. You can call
-     * getColor(), getRank(), and getNumber() on each of the cards it
-     * contains to see what it is. The color will be the color of the card,
-     * or "Color.NONE" if the card is a wild card. The rank will be
-     * "Rank.NUMBER" for all numbered cards, and another value (e.g.,
-     * "Rank.SKIP," "Rank.REVERSE," etc.) for special cards. The value of
-     * a card's "number" only has meaning if it is a number card.
-     * (Otherwise, it will be -1.)
-     *
-     * The upCard parameter works the same way, and tells you what the
-     * up card (in the middle of the table) is.
-     *
-     * The calledColor parameter only has meaning if the up card is a wild,
-     * and tells you what color the player who played that wild card called.
-     *
-     * Finally, the state parameter is a GameState object on which you can
-     * invoke methods if you choose to access certain detailed information
-     * about the game (like who is currently ahead, what colors each player
-     * has recently called, etc.)
-     *
-     * You must return a value from this method indicating which card you
-     * wish to play. If you return a number 0 or greater, that means you
-     * want to play the card at that index. If you return -1, that means
-     * that you cannot play any of your cards (none of them are legal plays)
-     * in which case you will be forced to draw a card (this will happen
-     * automatically for you.)
-     */
     public int play(List<Card> handed, Card upCard, Color calledColor,
                     GameState state) {
 
@@ -138,57 +79,7 @@ public class TeamHigh_UnoPlayer implements UnoPlayer {
             return possible.get(0);
         }
 
-        if (true) {
-            return playBiggestCard(possible);
-        }
-
-//        if (anyoneHasLessThan4CardsBesidesMe()) {
-//            if (!isThisTheLeast(0)) {
-//                if (isThisTheLeast(1)) {
-//                    int block = playBlockNextPerson(possible);
-//                    if (block != -1) {
-//                        return block;
-//                    }
-//                }
-//
-//                return playBiggestCard(possible);
-//
-//            }
-//        }
-
-        int pos = playBiggestNumCard(possible);
-        if (pos != -1) {
-            return pos;
-        }
-
-//        if (numCards.length == 4) { // so if there are exactly 4 players, then this applies
-//            int numCardsBehindYou = numCards[numCards.length-1]; // num cards of the person who just had their turn
-//            int numCardsAcrossFromYou = numCards[2]; // num cards of the person who will have their turn in 2 moves
-//
-//
-//            List<Rank> ranksToAvoid = new ArrayList<>(2);
-//
-//            if (numCardsBehindYou <= 1) { // if the person behind me has one card, then reverses are bad
-//                ranksToAvoid.add(Rank.REVERSE);
-//            }
-//            if (numCardsAcrossFromYou <= 1) { // if the person across from me has one card, then skips are bad
-//                ranksToAvoid.add(Rank.SKIP);
-//                ranksToAvoid.add(Rank.WILD_D4);
-//                ranksToAvoid.add(Rank.DRAW_TWO);
-//            }
-//
-//            if (!ranksToAvoid.isEmpty()) { // if there are any ranks in the do not play list
-//                int playUsingAvoid = doNotPlayCard(possible, ranksToAvoid);
-//
-//                if (playUsingAvoid != -1) {
-//                    return playUsingAvoid;
-//                }
-//            }
-//        }
-
-        int rand = (int)(Math.random() * possible.size());
-
-        return possible.get(rand);
+        return playBiggestCard(possible);
     }
 
     private List<Integer> possiblePlays(Card upCard) {
@@ -221,90 +112,6 @@ public class TeamHigh_UnoPlayer implements UnoPlayer {
         return possible;
     }
 
-    private boolean anyoneHasLessThan4CardsBesidesMe() {
-        int[] numCards = game.getNumCardsInHandsOfUpcomingPlayers();
-
-        for (int i = 1; i < numCards.length; i++) {
-            if (numCards[i] < 4) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    private boolean isThisTheLeast(int pos) {
-        int[] numCards = game.getNumCardsInHandsOfUpcomingPlayers();
-
-        int thisNumCards = numCards[pos];
-
-        for (int i = 0; i < numCards.length; i++) {
-            if (i == pos) continue;
-
-            if (numCards[i] < thisNumCards) {
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-    private int playBlockNextPerson(List<Integer> possibleCards) { //eventually make this so that if ranks are the same, then go for color min if applicable
-        int bestPos = -1;
-        int bestType = 1;
-
-        int[] numCardsOtherPlayers = game.getNumCardsInHandsOfUpcomingPlayers();
-        List<Card> discarded = game.getPlayedCards();
-
-        Color best = Color.NONE;
-
-        if (discarded.size() > 10) {
-            int[] colors = countColors(discarded);
-
-            int max = 0;
-            int pos = 0;
-
-            for (int i = 0; i < 4; i++) {
-                if (colors[i] > max) {
-                    max = colors[i];
-                    pos = i;
-                }
-            }
-
-            best = colorAtIndex(pos);
-        }
-
-        for (int i : possibleCards) {
-            Card c = hand.get(i);
-
-            if (c.getRank().equals(Rank.NUMBER)) continue;
-
-            int rank = cardTypeRankingsForBlocking(c.getRank());
-
-            if (numCardsOtherPlayers.length >= 3) {
-                if (numCardsOtherPlayers[numCardsOtherPlayers.length-1] == 1 && c.getRank().equals(Rank.REVERSE)) {
-                    continue;
-                }
-
-                if (numCardsOtherPlayers[2] <= 2 && c.getRank().equals(Rank.SKIP)) {
-                    continue;
-                }
-            }
-
-            if (rank == bestType) {
-                if (bestType >= 4) continue;
-
-                bestPos = c.getColor().equals(best) ? i : bestPos;
-            }
-
-            if (rank > bestType) {
-                bestType = rank;
-                bestPos = i;
-            }
-        }
-
-        return bestPos;
-    }
-
     private int playBiggestCard(List<Integer> possibleCards) {
         int bigVal = -1;
         int pos = -1;
@@ -321,47 +128,6 @@ public class TeamHigh_UnoPlayer implements UnoPlayer {
         return pos;
     }
 
-//    private int doNotPlayCard(List<Integer> possible, List<Rank> avoid) {
-//        int pos = -1;
-//        int maxType = 0;
-//
-//        for (int i : possible) {
-//            Card c = hand.get(i);
-//
-//            if (avoid.contains(c.getRank())) {
-//                continue;
-//            }
-//
-//            int type = cardTypeRankingsForBlocking(c.getRank());
-//
-//            if (type > maxType) {
-//                maxType = type;
-//                pos = i;
-//            }
-//        }
-//
-//        if (pos == -1) {
-//            return playBiggestType(possible);
-//        }
-//
-//        return pos;
-//    }
-
-//    private int playBiggestType(List<Integer> possible) {
-//        int maxType = 0;
-//        int pos = 0;
-//
-//        if ()
-//    }
-
-    /**
-     * callColor - This method will be called when you have just played a
-     * wild card, and is your way of specifying which color you want to
-     * change it to.
-     *
-     * You must return a valid Color value from this method. You must not
-     * return the value Color.NONE under any circumstances.
-     */
     public Color callColor(List<Card> handed) {
         hand = handed;
 
