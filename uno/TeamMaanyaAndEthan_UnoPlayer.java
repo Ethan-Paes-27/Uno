@@ -9,6 +9,8 @@ public class TeamMaanyaAndEthan_UnoPlayer implements UnoPlayer {
     private GameState game; // the game state
     List<Card> hand; // our hand
 
+    private final int MIN_CARDS_COUNT_DISCARD = 1;
+
     /**
      *
      * @param i, the index (0 = red, yellow, green, 3 = blue)
@@ -81,24 +83,6 @@ public class TeamMaanyaAndEthan_UnoPlayer implements UnoPlayer {
         return colors;
     }
 
-    private int playBiggestNumCard(List<Integer> possibleCards) {
-        int bigVal = -1;
-        int pos = -1;
-
-        for (int i : possibleCards) {
-            if (!hand.get(i).getRank().equals(Rank.NUMBER)) continue;
-
-            int val = hand.get(i).getNumber();
-
-            if (val > bigVal) {
-                bigVal = val;
-                pos = i;
-            }
-        }
-
-        return pos;
-    }
-
     /**
      * play - This method is called when it's your turn and you need to
      * choose what card to play.
@@ -152,225 +136,121 @@ public class TeamMaanyaAndEthan_UnoPlayer implements UnoPlayer {
             return possible.get(0);
         }
 
-//        if (anyoneHasLessThanNumCardsBesidesMe(4)) {
-//            if (!isThisTheLeast(0)) {
-//                if (isThisTheLeast(1)) {
-//                    int block = playBlockNextPerson(possible);
-//                    if (block != -1) {
-//                        return block;
-//                    }
-//
-//                    int big = playBiggestNumCard(possible);
-//
-//                    if (big != -1) {
-//                        return big;
-//                    }
-//                }
-//            }
-//        }
-
         return playBiggestCard(possible); // play the biggest value card
     }
 
-//
-//
-//        int pos = playBiggestNumCard(possible);
-//        if (pos != -1) {
-//            return pos;
-//        }
-
-//        if (numCards.length == 4) { // so if there are exactly 4 players, then this applies
-//            int numCardsBehindYou = numCards[numCards.length-1]; // num cards of the person who just had their turn
-//            int numCardsAcrossFromYou = numCards[2]; // num cards of the person who will have their turn in 2 moves
-//
-//
-//            List<Rank> ranksToAvoid = new ArrayList<>(2);
-//
-//            if (numCardsBehindYou <= 1) { // if the person behind me has one card, then reverses are bad
-//                ranksToAvoid.add(Rank.REVERSE);
-//            }
-//            if (numCardsAcrossFromYou <= 1) { // if the person across from me has one card, then skips are bad
-//                ranksToAvoid.add(Rank.SKIP);
-//                ranksToAvoid.add(Rank.WILD_D4);
-//                ranksToAvoid.add(Rank.DRAW_TWO);
-//            }
-//
-//            if (!ranksToAvoid.isEmpty()) { // if there are any ranks in the do not play list
-//                int playUsingAvoid = doNotPlayCard(possible, ranksToAvoid);
-//
-//                if (playUsingAvoid != -1) {
-//                    return playUsingAvoid;
-//                }
-//            }
-//        }
-//
-//        int rand = (int)(Math.random() * possible.size());
-//
-//        return possible.get(rand);
-//    }
-
+    /**
+     *
+     * @param upCard, the upCard
+     * @return a list of all possible card positions that can be played from hand
+     */
     private List<Integer> possiblePlays(Card upCard) {
-        Rank rank = upCard.getRank();
-        Color color = upCard.getColor();
-        int number = upCard.getNumber();
+        Rank rank = upCard.getRank(); // get the upCard's rank
+        Color color = upCard.getColor(); // get the upCard's color
+        int number = upCard.getNumber(); // get the upCard's number
 
-        List<Integer> possible = new ArrayList<>();
+        List<Integer> possible = new ArrayList<>(); // instantiate a list of the possible positions
 
-        for (int i = 0; i < hand.size(); i++) {
-            Card c = hand.get(i);
+        for (int i = 0; i < hand.size(); i++) { // iterate through the hand
+            Card c = hand.get(i); // get the specified card for comparison at the index i
 
-            if (c.getColor().equals(Color.NONE)) {
+            if (c.getColor().equals(Color.NONE)) { // if it is a wild (or draw 4), it can always be played
                 possible.add(i);
                 continue;
             }
 
-            if (!c.getRank().equals(Rank.NUMBER)) {
+            if (!c.getRank().equals(Rank.NUMBER)) { // if it is not a number, check the color or rank
                 if (c.getColor().equals(color) || c.getRank().equals(rank)) {
                     possible.add(i);
                 }
                 continue;
             }
 
-            if (c.getColor().equals(color) || c.getNumber() == number) {
+            if (c.getColor().equals(color) || c.getNumber() == number) { // check the color or number for matches
                 possible.add(i);
             }
         }
 
-        return possible;
+        return possible; // return the list of possible integers
     }
 
-    private boolean anyoneHasLessThanNumCardsBesidesMe(int num) {
-        int[] numCards = game.getNumCardsInHandsOfUpcomingPlayers();
-
-        for (int i = 1; i < numCards.length; i++) {
-            if (numCards[i] < num) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    private boolean isThisTheLeast(int pos) {
-        int[] numCards = game.getNumCardsInHandsOfUpcomingPlayers();
-
-        int thisNumCards = numCards[pos];
-
-        for (int i = 0; i < numCards.length; i++) {
-            if (i == pos) continue;
-
-            if (numCards[i] < thisNumCards) {
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-    private int playBlockNextPerson(List<Integer> possibleCards) {
-        int bestPos = -1;
-        int bestType = 1;
-
-        int[] numCardsOtherPlayers = game.getNumCardsInHandsOfUpcomingPlayers();
-        List<Card> discarded = game.getPlayedCards();
-
-        Color best = Color.NONE;
-
-        if (discarded.size() > 10) {
-            int[] colors = countColors(discarded);
-
-            int max = 0;
-            int pos = 0;
-
-            for (int i = 0; i < 4; i++) {
-                if (colors[i] > max) {
-                    max = colors[i];
-                    pos = i;
-                }
-            }
-
-            best = colorAtIndex(pos);
-        }
-
-        for (int i : possibleCards) {
-            Card c = hand.get(i);
-
-            if (c.getRank().equals(Rank.NUMBER)) continue;
-
-            int rank = cardTypeRankingsForBlocking(c.getRank());
-
-            if (numCardsOtherPlayers.length >= 3) {
-                if (numCardsOtherPlayers[numCardsOtherPlayers.length-1] == 1 && c.getRank().equals(Rank.REVERSE)) {
-                    continue;
-                }
-
-                if (numCardsOtherPlayers[2] <= 2 && c.getRank().equals(Rank.SKIP)) {
-                    continue;
-                }
-            }
-
-            if (rank == bestType) {
-                if (bestType >= 4) continue;
-
-                bestPos = c.getColor().equals(best) ? i : bestPos;
-            }
-
-            if (rank > bestType) {
-                bestType = rank;
-                bestPos = i;
-            }
-        }
-
-        return bestPos;
-    }
-
-    private int playBiggestCard(List<Integer> possibleCards) {
-        int bigVal = -1;
-        int pos = -1;
-
-        for (int i : possibleCards) {
-            Card c = hand.get(i);
-
-            if (cardRankingsForValue(c) > bigVal) {
-                bigVal = cardRankingsForValue(c);
-                pos = i;
-            }
-        }
-
-        return pos;
-    }
-
-//    private int doNotPlayCard(List<Integer> possible, List<Rank> avoid) {
-//        int pos = -1;
-//        int maxType = 0;
+//    private int playBlockNextPerson(List<Integer> possibleCards) {
+//        int bestPos = -1;
+//        int bestType = 1;
 //
-//        for (int i : possible) {
+//        int[] numCardsOtherPlayers = game.getNumCardsInHandsOfUpcomingPlayers();
+//        List<Card> discarded = game.getPlayedCards();
+//
+//        Color best = Color.NONE;
+//
+//        if (discarded.size() > 10) {
+//            int[] colors = countColors(discarded);
+//
+//            int max = 0;
+//            int pos = 0;
+//
+//            for (int i = 0; i < 4; i++) {
+//                if (colors[i] > max) {
+//                    max = colors[i];
+//                    pos = i;
+//                }
+//            }
+//
+//            best = colorAtIndex(pos);
+//        }
+//
+//        for (int i : possibleCards) {
 //            Card c = hand.get(i);
 //
-//            if (avoid.contains(c.getRank())) {
-//                continue;
+//            if (c.getRank().equals(Rank.NUMBER)) continue;
+//
+//            int rank = cardTypeRankingsForBlocking(c.getRank());
+//
+//            if (numCardsOtherPlayers.length >= 3) {
+//                if (numCardsOtherPlayers[numCardsOtherPlayers.length-1] == 1 && c.getRank().equals(Rank.REVERSE)) {
+//                    continue;
+//                }
+//
+//                if (numCardsOtherPlayers[2] <= 2 && c.getRank().equals(Rank.SKIP)) {
+//                    continue;
+//                }
 //            }
 //
-//            int type = cardTypeRankingsForBlocking(c.getRank());
+//            if (rank == bestType) {
+//                if (bestType >= 4) continue;
 //
-//            if (type > maxType) {
-//                maxType = type;
-//                pos = i;
+//                bestPos = c.getColor().equals(best) ? i : bestPos;
+//            }
+//
+//            if (rank > bestType) {
+//                bestType = rank;
+//                bestPos = i;
 //            }
 //        }
 //
-//        if (pos == -1) {
-//            return playBiggestType(possible);
-//        }
-//
-//        return pos;
+//        return bestPos;
 //    }
 
-//    private int playBiggestType(List<Integer> possible) {
-//        int maxType = 0;
-//        int pos = 0;
-//
-//        if ()
-//    }
+    /**
+     *
+     * @param possibleCards, a list of all possible positions in hand that can be played
+     * @return the position at which the value of the card is the largest
+     */
+    private int playBiggestCard(List<Integer> possibleCards) { //OPTIMIZE BY COLOR COUNTING
+        int bigVal = -1; // the biggest point value
+        int pos = -1; // the position of the biggest point value
+
+        for (int i : possibleCards) { // go through every integer in the possible values
+            Card c = hand.get(i); // get the right card from the hand
+
+            if (cardRankingsForValue(c) > bigVal) { // if its value is bigger than the biggest value
+                bigVal = cardRankingsForValue(c); // update the biggest value
+                pos = i; // update the pos
+            }
+        }
+
+        return pos; // return the best pos
+    }
 
     /**
      * callColor - This method will be called when you have just played a
@@ -381,62 +261,72 @@ public class TeamMaanyaAndEthan_UnoPlayer implements UnoPlayer {
      * return the value Color.NONE under any circumstances.
      */
     public Color callColor(List<Card> handed) {
-        hand = handed;
+        hand = handed; // update the hand
 
-        int[] oursAsColors = countColors(hand);
+        int[] oursAsColors = countColors(hand); // count all colors in terms of our hand
 
-        return bestCallColorWild(oursAsColors);
+        return bestCallColorWild(oursAsColors); // return from the bestCallColorWild with our color counted array
     }
 
+    /**
+     *
+     * @param ourHand, our hand as an array of integers representing the color counts in the hand
+     * @return the best color to play for optimal strategy
+     */
     private Color bestCallColorWild(int[] ourHand) {
-        ArrayList<Integer> possibleMaxes = possibleMaxes(ourHand);
+        ArrayList<Integer> possibleMaxes = possibleMaxes(ourHand);  // a list of all possible maxes of the color counting
 
-        if (possibleMaxes.size() == 1) {
+        if (possibleMaxes.size() == 1) { // if there is only one possible color max, play that one
             return colorAtIndex(possibleMaxes.get(0));
         }
 
-        List<Card> playedCards = game.getPlayedCards();
+        List<Card> playedCards = game.getPlayedCards(); // get all the played cards
 
-        if (playedCards.size() > 1) {
-            int[] gameAsColors = countColors(playedCards);
+        if (playedCards.size() > MIN_CARDS_COUNT_DISCARD) { // if it's greater than this variable, then compare discarded cards
+            int[] gameAsColors = countColors(playedCards); // get the game as colors by counting its colors
 
-            List<Integer> possibleDiscardedMaxes = possibleMaxes(gameAsColors);
+            List<Integer> possibleDiscardedMaxes = possibleMaxes(gameAsColors); // get the possible maxes for the game
 
-            int works = -1;
+            int works = -1; // the one that works
 
-            for (int i : possibleMaxes) {
-                if (possibleDiscardedMaxes.contains(i)) {
+            for (int i : possibleMaxes) { // for every integer in the possible maxes
+                if (possibleDiscardedMaxes.contains(i)) { // if the discarded maxes has it, then it works
                     works = i;
                 }
             }
 
             if (works != -1) {
-                return colorAtIndex(works);
+                return colorAtIndex(works); // if it is not -1, then return the right color
             }
         }
 
-        int rand = (int)(Math.random() * possibleMaxes.size());
+        int rand = (int)(Math.random() * possibleMaxes.size()); // at this point, it does not matter, so random works (all equal, from possible)
 
-        return colorAtIndex(possibleMaxes.get(rand));
+        return colorAtIndex(possibleMaxes.get(rand)); // return the right color
     }
 
+    /**
+     *
+     * @param ourHandAsColors, our hand as an array of integers representing color counts
+     * @return an arrayList of integers
+     */
     private ArrayList<Integer> possibleMaxes(int[] ourHandAsColors) {
-        ArrayList<Integer> possible = new ArrayList<>();
+        ArrayList<Integer> possible = new ArrayList<>(); // instantiate the arrayList of possible spots
 
-        int maxVal = 0;
+        int maxVal = 0; // the maximum count that exists
 
-        for (int i = 0; i < ourHandAsColors.length; i++) {
-            if (ourHandAsColors[i] > maxVal) {
+        for (int i = 0; i < 4; i++) { // go through every color index in the hand (it is always of length 4)
+            if (ourHandAsColors[i] > maxVal) { // if it is greater than the max, then update the maxVal, clear possible, and add the new i
                 maxVal = ourHandAsColors[i];
                 possible.clear();
                 possible.add(i);
             }
 
-            if (ourHandAsColors[i] == maxVal) {
+            if (ourHandAsColors[i] == maxVal) { // if it is equal, it also applies as a working value, so add it
                 possible.add(i);
             }
         }
 
-        return possible;
+        return possible; // return all the possible values
     }
 }
